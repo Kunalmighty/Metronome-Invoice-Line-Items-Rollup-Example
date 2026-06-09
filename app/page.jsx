@@ -14,6 +14,30 @@ import {
 const STATUS_OPTIONS = ["DRAFT", "FINALIZED"];
 const WINDOW_OPTIONS = ["day", "hour"];
 
+const SECTION_COPY = {
+  controls:
+    "Choose the Metronome customer, invoice status, invoice period, and breakdown granularity. The app then calls Metronome server-side and renders both raw billing data and the customer-facing rollup.",
+  summary:
+    "This summary compares the selected Metronome invoice with the presentation-layer version after the four Verity token products are collapsed into one customer-facing usage line.",
+  getInvoice:
+    "This path fetches one invoice with detailed line items, then rolls up Verity Input, Output, Cached Input, and Cached Output token usage into one Verity Usage row for display.",
+  breakdowns:
+    "This path fetches invoice-shaped time windows. Each window keeps its own usage timeline while applying the same Verity Usage rollup inside every returned window.",
+  apiLedger:
+    "This is the complete API trail for the current screen: customer discovery, invoice selection, full invoice details, and invoice breakdown windows. The bearer token is used only by server-side routes and is never shown here."
+};
+
+const TABLE_COPY = {
+  rawInvoice:
+    "Raw Metronome rows. Verity usage appears as separate token products because each product has distinct rates and pricing dimensions.",
+  presentedInvoice:
+    "Customer-facing rows. The app combines only the four Verity token usage rows; subscription, commit, credit, and adjustment rows stay separate.",
+  rawBreakdowns:
+    "Raw time-windowed invoice rows from the breakdowns endpoint. Use this when the customer experience needs usage history by day or hour.",
+  presentedBreakdowns:
+    "Time-windowed customer presentation rows. The rollup is applied per window so charts and tables can show one Verity Usage total over time."
+};
+
 export default function Home() {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
@@ -156,6 +180,10 @@ export default function Home() {
         <div>
           <p className="eyebrow">Caseware Verity</p>
           <h1>Invoice Line Item Rollup</h1>
+          <p className="pageIntro">
+            Compare two Metronome API approaches for presenting many internal token line items as one
+            customer-facing Verity Usage line.
+          </p>
         </div>
         <button className="iconButton" onClick={refresh} type="button" aria-label="Refresh invoice data">
           <RefreshCw size={18} />
@@ -163,6 +191,10 @@ export default function Home() {
       </header>
 
       <section className="controlBand" aria-label="Invoice controls">
+        <div className="bandIntro">
+          <h2>Invoice Context</h2>
+          <p>{SECTION_COPY.controls}</p>
+        </div>
         <Control label="Customer">
           <select
             value={selectedCustomerId}
@@ -187,7 +219,7 @@ export default function Home() {
           >
             {invoices.map((invoice) => (
               <option key={invoice.id} value={invoice.id}>
-                {formatDateRange(invoice.start_timestamp, invoice.end_timestamp)} · {invoice.status}
+                {formatDateRange(invoice.start_timestamp, invoice.end_timestamp)} - {invoice.status}
               </option>
             ))}
           </select>
@@ -205,6 +237,7 @@ export default function Home() {
         <EmptyState label={`No ${status.toLowerCase()} usage invoices found`} />
       ) : (
         <>
+          <SectionIntro title="Selected Invoice" copy={SECTION_COPY.summary} />
           <section className="summaryStrip" aria-label="Selected invoice summary">
             <SummaryMetric
               icon={<FileText size={18} />}
@@ -231,6 +264,7 @@ export default function Home() {
           <section className="methodGrid">
             <MethodPanel
               title="Get Invoice Endpoint"
+              description={SECTION_COPY.getInvoice}
               icon={<FileText size={20} />}
               requests={invoiceResult?.apiRequests ?? []}
               loading={loading.detail}
@@ -238,6 +272,8 @@ export default function Home() {
               <BeforeAfterTables
                 beforeTitle="Metronome Invoice Line Items"
                 afterTitle="Customer Presentation Line Items"
+                beforeDescription={TABLE_COPY.rawInvoice}
+                afterDescription={TABLE_COPY.presentedInvoice}
                 beforeLineItems={invoiceResult?.invoice?.line_items ?? []}
                 afterLineItems={invoiceResult?.rolledInvoice?.line_items ?? []}
                 summary={invoiceResult?.rolledInvoice?.presentation_summary}
@@ -251,6 +287,7 @@ export default function Home() {
 
             <MethodPanel
               title="Invoice Breakdowns Endpoint"
+              description={SECTION_COPY.breakdowns}
               icon={<Database size={20} />}
               requests={breakdownResult?.apiRequests ?? []}
               loading={loading.detail}
@@ -258,6 +295,8 @@ export default function Home() {
               <BreakdownTables
                 before={breakdownResult?.breakdowns ?? []}
                 after={breakdownResult?.rolledBreakdowns ?? []}
+                beforeDescription={TABLE_COPY.rawBreakdowns}
+                afterDescription={TABLE_COPY.presentedBreakdowns}
                 aggregate={breakdownResult?.aggregate}
               />
               <JsonDetails
@@ -273,6 +312,7 @@ export default function Home() {
               <Database size={18} />
               <h2>API Requests</h2>
             </div>
+            <p className="sectionDescription">{SECTION_COPY.apiLedger}</p>
             <ApiRequestList requests={combinedRequests} />
           </section>
         </>
@@ -319,7 +359,16 @@ function SummaryMetric({ icon, label, value }) {
   );
 }
 
-function MethodPanel({ title, icon, requests, loading, children }) {
+function SectionIntro({ title, copy }) {
+  return (
+    <div className="sectionIntro">
+      <h2>{title}</h2>
+      <p>{copy}</p>
+    </div>
+  );
+}
+
+function MethodPanel({ title, description, icon, requests, loading, children }) {
   return (
     <section className="methodPanel">
       <div className="methodHeader">
@@ -329,34 +378,44 @@ function MethodPanel({ title, icon, requests, loading, children }) {
         </div>
         {loading ? <span className="loadingPill">Refreshing</span> : null}
       </div>
+      <p className="sectionDescription">{description}</p>
       <ApiRequestList requests={requests} compact />
       {children}
     </section>
   );
 }
 
-function BeforeAfterTables({ beforeTitle, afterTitle, beforeLineItems, afterLineItems, summary }) {
+function BeforeAfterTables({
+  beforeTitle,
+  afterTitle,
+  beforeDescription,
+  afterDescription,
+  beforeLineItems,
+  afterLineItems,
+  summary
+}) {
   return (
     <div className="comparison">
-      <LineTable title={beforeTitle} lineItems={beforeLineItems} tone="before" />
-      <LineTable title={afterTitle} lineItems={afterLineItems} tone="after" summary={summary} />
+      <LineTable title={beforeTitle} description={beforeDescription} lineItems={beforeLineItems} tone="before" />
+      <LineTable title={afterTitle} description={afterDescription} lineItems={afterLineItems} tone="after" summary={summary} />
     </div>
   );
 }
 
-function BreakdownTables({ before, after, aggregate }) {
+function BreakdownTables({ before, after, beforeDescription, afterDescription, aggregate }) {
   return (
     <div className="comparison">
-      <WindowTable title="Metronome Breakdown Windows" breakdowns={before} tone="before" />
-      <WindowTable title="Customer Presentation Windows" breakdowns={after} tone="after" aggregate={aggregate} />
+      <WindowTable title="Metronome Breakdown Windows" description={beforeDescription} breakdowns={before} tone="before" />
+      <WindowTable title="Customer Presentation Windows" description={afterDescription} breakdowns={after} tone="after" aggregate={aggregate} />
     </div>
   );
 }
 
-function LineTable({ title, lineItems, tone, summary }) {
+function LineTable({ title, description, lineItems, tone, summary }) {
   return (
     <div className={`tableBlock ${tone}`}>
       <TableTitle title={title} count={lineItems.length} summary={summary} />
+      <p className="tableDescription">{description}</p>
       <div className="tableWrap">
         <table>
           <thead>
@@ -397,10 +456,11 @@ function LineTable({ title, lineItems, tone, summary }) {
   );
 }
 
-function WindowTable({ title, breakdowns, tone, aggregate }) {
+function WindowTable({ title, description, breakdowns, tone, aggregate }) {
   return (
     <div className={`tableBlock ${tone}`}>
       <TableTitle title={title} count={breakdowns.length} summary={aggregate} />
+      <p className="tableDescription">{description}</p>
       <div className="tableWrap">
         <table>
           <thead>
@@ -463,6 +523,10 @@ function JsonDetails({ title, before, after }) {
   return (
     <details className="jsonDetails">
       <summary>{title}</summary>
+      <p className="detailsDescription">
+        Open this to inspect the raw Metronome response next to the transformed presentation payload
+        returned by the app.
+      </p>
       <div className="jsonGrid">
         <pre>{JSON.stringify(before ?? null, null, 2)}</pre>
         <pre>{JSON.stringify(after ?? null, null, 2)}</pre>
@@ -526,7 +590,7 @@ function formatGroups(lineItem) {
     return "-";
   }
 
-  return groups.slice(0, 3).map(([key, value]) => `${key}: ${value ?? "-"}`).join(" · ");
+  return groups.slice(0, 3).map(([key, value]) => `${key}: ${value ?? "-"}`).join(" - ");
 }
 
 function countVerityLines(lineItems = []) {
