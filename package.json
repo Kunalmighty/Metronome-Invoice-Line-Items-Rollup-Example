@@ -1,0 +1,23 @@
+{
+  "name": "caseware-metronome-invoice-rollup-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Next.js demo for rolling Caseware Verity token invoice lines into one presentation line item.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "setup:sandbox": "node src/index.js",
+    "check": "node --check src/config.js && node --check src/definitions.js && node --check src/metronomeClient.js && node --check src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "lucide-react": "^1.17.0",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  }
+}
