@@ -30,7 +30,8 @@ body {
 }
 
 button,
-select {
+select,
+input {
   font: inherit;
 }
 
@@ -92,6 +93,7 @@ h3 {
   color: var(--ink);
   background: var(--surface);
   box-shadow: var(--shadow);
+  text-decoration: none;
 }
 
 .iconButton:hover {
@@ -154,6 +156,16 @@ h3 {
 }
 
 select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface-strong);
+}
+
+input {
   width: 100%;
   min-height: 42px;
   padding: 0 12px;
@@ -459,6 +471,113 @@ pre {
   padding: 18px;
 }
 
+.headerActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.governanceHero {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.4fr) repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: stretch;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.governanceGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.compactTable {
+  min-width: 100%;
+}
+
+.seatPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.seatPills span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--teal);
+  background: var(--teal-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.allocationForm {
+  display: grid;
+  gap: 12px;
+}
+
+.allocationForm label {
+  display: grid;
+  gap: 7px;
+}
+
+.allocationForm span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.primaryButton {
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  background: var(--teal);
+  font-weight: 800;
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
+}
+
+.successPanel {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #badbd4;
+  border-radius: 8px;
+  color: var(--teal);
+  background: var(--teal-soft);
+}
+
+.successPanel span {
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.requestDetails summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.requestDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.requestDetails pre {
+  margin-top: 8px;
+}
+
 .errorBanner {
   display: flex;
   align-items: center;
@@ -480,6 +599,8 @@ pre {
 
 @media (max-width: 1180px) {
   .controlBand,
+  .governanceHero,
+  .governanceGrid,
   .methodGrid,
   .summaryStrip,
   .jsonGrid {

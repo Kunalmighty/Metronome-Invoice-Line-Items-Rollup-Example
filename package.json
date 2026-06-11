@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "setup:sandbox": "node src/index.js",
-    "check": "node --check src/config.js && node --check src/definitions.js && node --check src/metronomeClient.js && node --check src/index.js"
+    "setup:governance": "node src/setupGovernanceDemo.js",
+    "check": "node --check src/config.js && node --check src/definitions.js && node --check src/governanceDefinitions.js && node --check src/metronomeClient.js && node --check src/index.js && node --check src/setupGovernanceDemo.js"
   },
   "engines": {
     "node": ">=20"

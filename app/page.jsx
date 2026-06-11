@@ -8,7 +8,8 @@ import {
   FileText,
   GitCompareArrows,
   RefreshCw,
-  Rows3
+  Rows3,
+  ShieldCheck
 } from "lucide-react";
 
 const STATUS_OPTIONS = ["DRAFT", "FINALIZED"];
@@ -185,9 +186,14 @@ export default function Home() {
             customer-facing Verity Usage line.
           </p>
         </div>
-        <button className="iconButton" onClick={refresh} type="button" aria-label="Refresh invoice data">
-          <RefreshCw size={18} />
-        </button>
+        <div className="headerActions">
+          <a className="iconButton" href="/governance" aria-label="Open seat governance demo">
+            <ShieldCheck size={18} />
+          </a>
+          <button className="iconButton" onClick={refresh} type="button" aria-label="Refresh invoice data">
+            <RefreshCw size={18} />
+          </button>
+        </div>
       </header>
 
       <section className="controlBand" aria-label="Invoice controls">

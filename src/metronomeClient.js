@@ -21,8 +21,14 @@ export class MetronomeClient {
     return this.request("POST", path, { body, query });
   }
 
-  async request(method, path, { query, body } = {}) {
-    const url = new URL(`${this.baseUrl}${path}`);
+  async postAbsolute(url, body, query) {
+    return this.request("POST", url, { body, query, absolute: true });
+  }
+
+  async request(method, path, { query, body, absolute = false } = {}) {
+    const origin = this.baseUrl.replace(/\/v1$/, "");
+    const baseUrl = path.startsWith("/v2/") ? origin : this.baseUrl;
+    const url = new URL(absolute ? path : `${baseUrl}${path}`);
 
     for (const [key, value] of Object.entries(query ?? {})) {
       if (value !== undefined && value !== null) {
