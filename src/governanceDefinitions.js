@@ -135,9 +135,10 @@ export function buildGovernanceContractPayload(customerId, rateCardId, productId
 
 export function buildGovernanceOverrideCredit({ productIds, userId, amount, startingAt, endingBefore }) {
   const usageProductIds = TOKEN_USAGE_PRODUCTS.map((metric) => productIds[metric.key]);
+  const adjustmentType = Number(amount) < 0 ? "Deduction" : "Addition";
 
   return {
-    name: `User Allocation Override - ${userId}`,
+    name: `User Allocation ${adjustmentType} - ${userId}`,
     product_id: productIds[COMMIT_PRODUCT.key],
     access_schedule: {
       credit_type_id: VERITY_CREDITS_CREDIT_TYPE_ID,

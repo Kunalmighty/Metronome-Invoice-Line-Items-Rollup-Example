@@ -18,7 +18,7 @@ const SECTION_COPY = {
   credits:
     "The contract has two monthly recurring credit layers attached to the same seat subscription. User-scoped credits at priority 1 are consumed first; pooled credits at priority 2 are available after the user-scoped balance is exhausted.",
   editor:
-    "This form sends a server-side Metronome contract edit request. It adds a dated contract-level credit scoped to one userId, which models a mid-month allocation override for the active entitlement period.",
+    "This form sends a server-side Metronome contract edit request. It posts a dated contract-level credit adjustment scoped to one userId. Additions use a positive amount; deductions use a negative amount for the same active entitlement period.",
   api:
     "These are the Metronome API requests made by this page and by the most recent edit. The bearer token is kept server-side and is not included in any request shown here."
 };
@@ -30,6 +30,7 @@ export default function GovernancePage() {
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     userId: "",
+    mode: "add",
     amount: "300",
     effectiveAt: "2026-06-10T00:00:00.000Z",
     endingBefore: "2026-07-01T00:00:00.000Z"
@@ -68,7 +69,7 @@ export default function GovernancePage() {
     try {
       const payload = await postJson("/api/metronome/governance/allocation", {
         ...form,
-        amount: Number(form.amount)
+        amount: signedAmount(form.mode, form.amount)
       });
       setEditResult(payload);
       await loadContext();
@@ -176,7 +177,26 @@ export default function GovernancePage() {
                   </select>
                 </label>
                 <label>
-                  <span>Additional Credits</span>
+                  <span>Adjustment Type</span>
+                  <div className="segmented">
+                    <button
+                      className={form.mode === "add" ? "active" : ""}
+                      onClick={() => setForm((value) => ({ ...value, mode: "add" }))}
+                      type="button"
+                    >
+                      Add
+                    </button>
+                    <button
+                      className={form.mode === "deduct" ? "active danger" : ""}
+                      onClick={() => setForm((value) => ({ ...value, mode: "deduct" }))}
+                      type="button"
+                    >
+                      Deduct
+                    </button>
+                  </div>
+                </label>
+                <label>
+                  <span>{form.mode === "deduct" ? "Credits to Deduct" : "Credits to Add"}</span>
                   <input
                     min="1"
                     step="1"
@@ -202,14 +222,15 @@ export default function GovernancePage() {
                   />
                 </label>
                 <button className="primaryButton" type="submit" disabled={loading.edit || !form.userId}>
-                  {loading.edit ? "Submitting..." : "Add User Override"}
+                  {loading.edit ? "Submitting..." : `${form.mode === "deduct" ? "Deduct" : "Add"} User Override`}
                 </button>
               </form>
               {editResult ? (
                 <div className="successPanel">
                   <strong>Contract edit submitted</strong>
                   <span>
-                    Added {formatCredits(editResult.addedCredit?.access_schedule?.schedule_items?.[0]?.amount)} for{" "}
+                    {adjustmentVerb(editResult.addedCredit?.access_schedule?.schedule_items?.[0]?.amount)}{" "}
+                    {formatCredits(Math.abs(editResult.addedCredit?.access_schedule?.schedule_items?.[0]?.amount ?? 0))} for{" "}
                     {editResult.addedCredit?.specifiers?.[0]?.presentation_group_values?.userId}.
                   </span>
                 </div>
@@ -342,6 +363,15 @@ function formatCredits(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return "-";
   return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(number)} Verity Credits`;
+}
+
+function signedAmount(mode, amount) {
+  const number = Math.abs(Number(amount));
+  return mode === "deduct" ? -number : number;
+}
+
+function adjustmentVerb(amount) {
+  return Number(amount) < 0 ? "Deducted" : "Added";
 }
 
 function toDatetimeLocal(value) {
