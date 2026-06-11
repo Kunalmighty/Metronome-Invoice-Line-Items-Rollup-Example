@@ -2,18 +2,19 @@ import {
   METRONOME_API_BASE_URL,
   METRONOME_BEARER_TOKEN,
   RATE_CARD_NAME,
-  START_AT
+  START_AT,
+  USD_CENTS_CREDIT_TYPE_ID
 } from "./config.js";
 import {
   COMMIT_PRODUCT,
-  SUBSCRIPTION_PRODUCTS,
   TOKEN_USAGE_PRODUCTS
 } from "./definitions.js";
 import {
   buildGovernanceContractPayload,
   buildGovernanceCustomerPayload,
   buildGovernanceUsageEvents,
-  GOVERNANCE_CUSTOMER
+  GOVERNANCE_CUSTOMER,
+  GOVERNANCE_MONTHLY_SEAT_PRODUCT
 } from "./governanceDefinitions.js";
 import { MetronomeApiError, MetronomeClient } from "./metronomeClient.js";
 
@@ -33,6 +34,7 @@ async function main() {
   const customerId = await ensureGovernanceCustomer();
   const rateCardId = await findRateCardId();
   const productIds = await findProductIds();
+  await ensureMonthlySeatRate(rateCardId, productIds);
 
   await ensureGovernanceContract(customerId, rateCardId, productIds);
   await ingestGovernanceUsageEvents();
@@ -78,13 +80,24 @@ async function findProductIds() {
 
   const expectedProducts = [
     ...TOKEN_USAGE_PRODUCTS.map((product) => [product.key, product.productName]),
-    ...SUBSCRIPTION_PRODUCTS.map((product) => [product.key, product.name]),
+    [GOVERNANCE_MONTHLY_SEAT_PRODUCT.key, GOVERNANCE_MONTHLY_SEAT_PRODUCT.name],
     [COMMIT_PRODUCT.key, COMMIT_PRODUCT.name]
   ];
   const ids = {};
 
   for (const [key, name] of expectedProducts) {
     const product = products.find((item) => productName(item) === name);
+    if (!product && key === GOVERNANCE_MONTHLY_SEAT_PRODUCT.key) {
+      const response = await client.post("/contract-pricing/products/create", {
+        name,
+        type: "SUBSCRIPTION",
+        tags: ["caseware", "verity", "seats", "monthly-governance"]
+      });
+      ids[key] = response.data.id;
+      console.log(`Created product '${name}'.`);
+      continue;
+    }
+
     if (!product) {
       throw new Error(`Could not find product '${name}'. Run npm run setup:sandbox first.`);
     }
@@ -93,6 +106,32 @@ async function findProductIds() {
 
   console.log("Resolved Verity usage, seat subscription, and credit pool products.");
   return ids;
+}
+
+async function ensureMonthlySeatRate(rateCardId, productIds) {
+  try {
+    await client.post("/contract-pricing/rate-cards/addRates", {
+      rate_card_id: rateCardId,
+      rates: [
+        {
+          product_id: productIds[GOVERNANCE_MONTHLY_SEAT_PRODUCT.key],
+          starting_at: START_AT,
+          entitled: true,
+          rate_type: "FLAT",
+          price: GOVERNANCE_MONTHLY_SEAT_PRODUCT.monthlyPriceCents,
+          credit_type_id: USD_CENTS_CREDIT_TYPE_ID,
+          billing_frequency: "MONTHLY"
+        }
+      ]
+    });
+    console.log(`Added monthly rate for '${GOVERNANCE_MONTHLY_SEAT_PRODUCT.name}'.`);
+  } catch (error) {
+    if (error instanceof MetronomeApiError && error.status === 409) {
+      console.log(`Monthly rate for '${GOVERNANCE_MONTHLY_SEAT_PRODUCT.name}' already exists; skipping.`);
+      return;
+    }
+    throw error;
+  }
 }
 
 async function ensureGovernanceContract(customerId, rateCardId, productIds) {

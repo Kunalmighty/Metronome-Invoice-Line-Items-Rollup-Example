@@ -2,18 +2,23 @@ import { END_BEFORE, START_AT, VERITY_CREDITS_CREDIT_TYPE_ID } from "./config.js
 import {
   CASEWARE_EVENT_TYPE,
   COMMIT_PRODUCT,
-  SUBSCRIPTION_PRODUCTS,
   TOKEN_USAGE_PRODUCTS
 } from "./definitions.js";
 
+export const GOVERNANCE_MONTHLY_SEAT_PRODUCT = {
+  key: "monthlyGovernanceSeats",
+  name: "Verity Monthly Governance Seats",
+  monthlyPriceCents: 2000
+};
+
 export const GOVERNANCE_CUSTOMER = {
-  name: "Caseware Governance Labs",
-  ingestAlias: "firm-caseware-governance-labs",
-  contractName: "Caseware Governance Labs Verity Governance Contract",
-  contractUniquenessKey: "caseware-verity-governance-labs-contract",
+  name: "Caseware Monthly Seat Governance Labs",
+  ingestAlias: "firm-caseware-monthly-seat-governance",
+  contractName: "Caseware Monthly Seat Governance Annual Term Contract",
+  contractUniquenessKey: "caseware-monthly-seat-governance-annual-term-contract",
   tier: "good",
-  subscriptionTemporaryId: "caseware_governance_annual_seats",
-  seatProductKey: "goodSeats",
+  subscriptionTemporaryId: "caseware_governance_monthly_seats",
+  seatProductKey: GOVERNANCE_MONTHLY_SEAT_PRODUCT.key,
   seatIds: ["gov-admin", "gov-standard", "gov-power"]
 };
 
@@ -33,11 +38,6 @@ export function buildGovernanceCustomerPayload() {
 
 export function buildGovernanceContractPayload(customerId, rateCardId, productIds) {
   const usageProductIds = TOKEN_USAGE_PRODUCTS.map((metric) => productIds[metric.key]);
-  const seatProduct = SUBSCRIPTION_PRODUCTS.find((product) => product.key === GOVERNANCE_CUSTOMER.seatProductKey);
-
-  if (!seatProduct) {
-    throw new Error(`Missing seat product definition for ${GOVERNANCE_CUSTOMER.seatProductKey}.`);
-  }
 
   return {
     customer_id: customerId,
@@ -53,11 +53,11 @@ export function buildGovernanceContractPayload(customerId, rateCardId, productId
     subscriptions: [
       {
         temporary_id: GOVERNANCE_CUSTOMER.subscriptionTemporaryId,
-        name: "Verity Governance Annual Seats",
-        description: "Seat-based subscription used for per-user and pooled governance entitlement periods.",
+        name: "Verity Governance Monthly Seats",
+        description: "Monthly-renewing seat-based subscription inside an annual-billing governance contract.",
         subscription_rate: {
-          product_id: productIds[seatProduct.key],
-          billing_frequency: "ANNUAL"
+          product_id: productIds[GOVERNANCE_MONTHLY_SEAT_PRODUCT.key],
+          billing_frequency: "MONTHLY"
         },
         collection_schedule: "ADVANCE",
         proration: {

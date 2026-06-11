@@ -14,9 +14,9 @@ import {
 
 const SECTION_COPY = {
   context:
-    "This section is the Metronome contract context for the Caseware seat governance demo. The annual seat subscription starts on June 1, 2026, while the entitlement periods are monthly.",
+    "This section is the Metronome contract context for the Caseware seat governance demo. The customer is on a June 1, 2026 annual contract term, while usage statements, seat subscriptions, and entitlement grants renew monthly.",
   credits:
-    "The contract has two monthly recurring credit layers attached to the same seat subscription. User-scoped credits at priority 1 are consumed first; pooled credits at priority 2 are available after the user-scoped balance is exhausted.",
+    "The contract has two monthly recurring credit layers attached to the monthly seat subscription. User-scoped credits at priority 1 are consumed first; pooled credits at priority 2 are available after the user-scoped balance is exhausted.",
   editor:
     "This form sends a server-side Metronome contract edit request. It posts a dated contract-level credit adjustment scoped to one userId. Additions use a positive amount; deductions use a negative amount for the same active entitlement period.",
   api:
@@ -124,7 +124,7 @@ export default function GovernancePage() {
               <p>{SECTION_COPY.context}</p>
             </div>
             <SummaryMetric icon={<ShieldCheck size={18} />} label="Customer" value={context?.customer?.name ?? "-"} />
-            <SummaryMetric icon={<CalendarDays size={18} />} label="Contract Term" value="Jun 1, 2026 to Jun 1, 2027" />
+            <SummaryMetric icon={<CalendarDays size={18} />} label="Annual Term" value="Jun 1, 2026 to Jun 1, 2027" />
             <SummaryMetric icon={<Users size={18} />} label="Seat IDs" value={`${model?.seatIds?.length ?? 0} assigned`} />
           </section>
 
@@ -135,7 +135,7 @@ export default function GovernancePage() {
                   <tr>
                     <th>Layer</th>
                     <th>Priority</th>
-                    <th>Allocation</th>
+                    <th>Renewal</th>
                     <th>Monthly Amount</th>
                   </tr>
                 </thead>
@@ -143,13 +143,13 @@ export default function GovernancePage() {
                   <tr>
                     <td><strong>User-scoped credits</strong></td>
                     <td>1</td>
-                    <td>Individual per userId</td>
+                    <td>Monthly, individual per userId</td>
                     <td>{formatCredits(model?.userMonthlyCreditsPerSeat)} / seat</td>
                   </tr>
                   <tr>
                     <td><strong>Pooled overflow credits</strong></td>
                     <td>2</td>
-                    <td>Shared across seats</td>
+                    <td>Monthly, shared across seats</td>
                     <td>{formatCredits(model?.pooledMonthlyCreditsPerSeat)} / seat</td>
                   </tr>
                 </tbody>
