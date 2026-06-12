@@ -10,7 +10,8 @@
     "start": "next start",
     "setup:sandbox": "node src/index.js",
     "setup:governance": "node src/setupGovernanceDemo.js",
-    "check": "node --check src/config.js && node --check src/definitions.js && node --check src/governanceDefinitions.js && node --check src/metronomeClient.js && node --check src/index.js && node --check src/setupGovernanceDemo.js"
+    "setup:firm-pool-governance": "node src/setupFirmPoolGovernanceDemo.js",
+    "check": "node --check src/config.js && node --check src/definitions.js && node --check src/governanceDefinitions.js && node --check src/firmPoolGovernanceDefinitions.js && node --check src/metronomeClient.js && node --check src/index.js && node --check src/setupGovernanceDemo.js && node --check src/setupFirmPoolGovernanceDemo.js"
   },
   "engines": {
     "node": ">=20"
